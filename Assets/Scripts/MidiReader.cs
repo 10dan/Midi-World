@@ -6,6 +6,7 @@ using MidiParser;
 using System.Linq;
 using System.Threading;
 using System.Diagnostics;
+using UnityEngine.Rendering.PostProcessing;
 
 public class MidiReader : MonoBehaviour {
 
@@ -16,17 +17,13 @@ public class MidiReader : MonoBehaviour {
 
     [SerializeField] GameObject[] objects;
     bool[] objectsActive;
-
-    [SerializeField] GameObject kickBox;
-    [SerializeField] GameObject snareBox;
-    [SerializeField] GameObject hatBox;
-    [SerializeField] GameObject openBox;
     [SerializeField] float shrinkRate;
 
     MidiFile midiFile;
 
     private void Awake() {
         midiFile = new MidiFile("Assets/Resources/Music/drum2.mid");
+        objectsActive = new bool[objects.Length];
     }
     private void Start() {
         Invoke("StartSong", 1f);
@@ -36,38 +33,16 @@ public class MidiReader : MonoBehaviour {
         t.Start();
         audioSource.PlayOneShot(song);
     }
-
-    bool playHat, playSnare, playKick, playOpen = false;
     int boxSize = 3;
     private void Update() {
-        if (playHat) {
-            hatBox.transform.localScale = new Vector3(boxSize, boxSize, boxSize);
-            playHat = false;
-        }
-        if (playSnare) {
-            snareBox.transform.localScale = new Vector3(boxSize, boxSize, boxSize);
-            playSnare = false;
-        }
-        if (playKick) {
-            kickBox.transform.localScale = new Vector3(boxSize, boxSize, boxSize);
-            playKick = false;
-        }
-        if (playOpen) {
-            openBox.transform.localScale = new Vector3(boxSize, boxSize, boxSize);
-            playOpen = false;
-        }
-
-        if (hatBox.transform.localScale.x > shrinkRate) {
-            hatBox.transform.localScale -= new Vector3(shrinkRate, shrinkRate, shrinkRate);
-        }
-        if (snareBox.transform.localScale.x > shrinkRate) {
-            snareBox.transform.localScale -= new Vector3(shrinkRate, shrinkRate, shrinkRate);
-        }
-        if (kickBox.transform.localScale.x > shrinkRate) {
-            kickBox.transform.localScale -= new Vector3(shrinkRate, shrinkRate, shrinkRate);
-        }
-        if (openBox.transform.localScale.x > shrinkRate) {
-            openBox.transform.localScale -= new Vector3(shrinkRate, shrinkRate, shrinkRate);
+        for (int i = 0; i < objectsActive.Length; i++) {
+            if (objectsActive[i] == true) {
+                objects[i].transform.localScale = new Vector3(boxSize, boxSize, boxSize);
+                objectsActive[i] = false;
+            }
+            if (objects[i].transform.localScale.x > shrinkRate) {
+                objects[i].transform.localScale -= new Vector3(shrinkRate, shrinkRate, shrinkRate);
+            }
         }
     }
 
@@ -80,17 +55,17 @@ public class MidiReader : MonoBehaviour {
             e = midiFile.Tracks[0].MidiEvents[currentEventIndex];
             while (t == e.Time) {
                 if (e.MidiEventType == MidiEventType.NoteOn) {
-                    if(e.Note == 48) {
-                        playKick = true;
+                    if (e.Note == 48) {
+                        objectsActive[0] = true;
                     }
-                    if(e.Note == 50) {
-                        playHat = true;
+                    if (e.Note == 50) {
+                        objectsActive[1] = true;
                     }
-                    if(e.Note == 49) {
-                        playSnare = true;
+                    if (e.Note == 49) {
+                        objectsActive[2] = true;
                     }
-                    if(e.Note == 51) {
-                        playOpen = true;
+                    if (e.Note == 51) {
+                        objectsActive[3] = true;
                     }
                 }
                 currentEventIndex++;

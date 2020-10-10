@@ -155,10 +155,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   audioSource: {fileID: 323505296}
   song: {fileID: 8300000, guid: 8a3677d73b2d416428110c890e6a5e10, type: 3}
-  kickBox: {fileID: 462350212}
-  snareBox: {fileID: 1480127787}
-  hatBox: {fileID: 1816533184}
-  openBox: {fileID: 404673316}
+  objects:
+  - {fileID: 1816533184}
+  - {fileID: 462350212}
+  - {fileID: 1480127787}
+  - {fileID: 404673316}
   shrinkRate: 0.02
 --- !u!4 &323505295
 Transform:
