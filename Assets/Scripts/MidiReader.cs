@@ -11,20 +11,36 @@ using UnityEngine.Rendering.PostProcessing;
 public class MidiReader : MonoBehaviour {
 
     private float timeBetweenTicks = (1f / 192f);
+
     [SerializeField] AudioSource audioSource;
     [SerializeField] AudioClip song;
 
 
     [SerializeField] GameObject[] objects;
     bool[] objectsActive;
+
+
     [SerializeField] float shrinkRate;
 
-    MidiFile midiFile;
+    List<MidiFile> midis = new List<MidiFile>();
 
     private void Awake() {
-        midiFile = new MidiFile("Assets/Resources/Music/drum2.mid");
+        //Set the active notes list to same length as the corresponding number of objects.
         objectsActive = new bool[objects.Length];
+
+        //Create the midi files and store them in list called midis.
+        string path = "Assets/Resources/Midis/";
+        DirectoryInfo d = new DirectoryInfo(path);
+        FileInfo[] files = d.GetFiles();
+        foreach (FileInfo fi in files) {
+            if (fi.Extension.EndsWith(".mid")) {
+                midis.Add(new MidiFile(fi.FullName));
+            }
+        }
+
+
     }
+
     private void Start() {
         Invoke("StartSong", 1f);
     }
@@ -33,6 +49,7 @@ public class MidiReader : MonoBehaviour {
         t.Start();
         audioSource.PlayOneShot(song);
     }
+
     int boxSize = 3;
     private void Update() {
         for (int i = 0; i < objectsActive.Length; i++) {
@@ -49,29 +66,47 @@ public class MidiReader : MonoBehaviour {
 
     public void ThreadMidi() {
         int t = 0; //Time in ticks
-        int currentEventIndex = 0;
+        int[] currentEvents = new int[midis.Count];
         MidiEvent e;
         while (true) {
-            e = midiFile.Tracks[0].MidiEvents[currentEventIndex];
-            while (t == e.Time) {
-                if (e.MidiEventType == MidiEventType.NoteOn) {
-                    if (e.Note == 48) {
-                        objectsActive[0] = true;
+            //Go through all midi tracks
+            for (int i = 0; i < midis.Count; i++) {
+                //Set e to the next scheduled event. (track[0] is default, ableton exports that way)
+                e = midis[i].Tracks[0].MidiEvents[currentEvents[i]];
+                //While t == e.Time check if its a note event, if not move on. (While loop incase 2 events are at same time)
+                while (t == e.Time) {
+                    if (e.MidiEventType == MidiEventType.NoteOn) {
+                        //print(e.Note);
+                        if (e.Note == 36) {
+                            objectsActive[0] = true;
+                        }
+                        if (e.Note == 38) {
+                            objectsActive[2] = true;
+                        }
+                        if (e.Note == 40) {
+                            objectsActive[3] = true;
+                        }
+                        if (e.Note == 41) {
+                            objectsActive[1] = true;
+                        }
                     }
-                    if (e.Note == 50) {
-                        objectsActive[1] = true;
+                    //If we get to the end of the list of events reset the counter.
+                    if (currentEvents[i] < midis[i].Tracks[0].MidiEvents.Count-1) {
+                        currentEvents[i]++;
+                    } else {
+                        currentEvents[i] = 0;
                     }
-                    if (e.Note == 49) {
-                        objectsActive[2] = true;
-                    }
-                    if (e.Note == 51) {
-                        objectsActive[3] = true;
-                    }
+                    e = midis[i].Tracks[0].MidiEvents[currentEvents[i]];
                 }
-                currentEventIndex++;
-                e = midiFile.Tracks[0].MidiEvents[currentEventIndex];
             }
-            t++;
+
+            //If not at the end of the 4 bars, ticks increase,
+            if (t <= 96 * 4 * 4) {
+                t++;
+            } else { //Otherwise loop.
+                t = 0;
+            }
+            //Wait for one tick.
             PauseThreadForSeconds(timeBetweenTicks);
         }
     }
