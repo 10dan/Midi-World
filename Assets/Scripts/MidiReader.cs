@@ -45,7 +45,7 @@ public class MidiReader : MonoBehaviour {
         musicThread.Start();
         audioSource.PlayOneShot(song);
     }
-    private void FixedUpdate() {
+    private void Update() {
         //If the music ends.
         if (!(audioSource.isPlaying)) {
             //Reset event pointers and tick counter t.
