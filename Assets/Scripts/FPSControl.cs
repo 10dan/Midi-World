@@ -39,7 +39,8 @@ public class FPSControl : MonoBehaviour {
         float movementDirectionY = moveDirection.y;
         moveDirection = (forward * curSpeedX) + (right * curSpeedY);
 
-        if (Input.GetButton("Jump") && canMove && characterController.isGrounded) {
+        //    if (Input.GetButton("Jump") && canMove && characterController.isGrounded) {
+        if (Input.GetButton("Jump") && canMove) {
             moveDirection.y = jumpSpeed;
         } else {
             moveDirection.y = movementDirectionY;
